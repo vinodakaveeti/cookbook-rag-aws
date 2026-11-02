@@ -36,7 +36,7 @@ async def upload_file(file: UploadFile=File(...)):
 @app.post("/search")
 async def get_query(request: SearchQuery):
     res = await asyncio.to_thread(bedrock_obj.retrieve_ingestion, request.query, request.top_k)
-    return {"result": res}
+    return res
 
 
 @app.get("/")
