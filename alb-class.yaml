@@ -1,0 +1,40 @@
+apiVersion: eks.amazonaws.com/v1
+kind: IngressClassParams
+metadata:
+  name: alb
+spec:
+  scheme: internet-facing
+  targetType: ip
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: alb
+spec:
+  controller: eks.amazonaws.com/alb
+  parameters:
+    apiGroup: eks.amazonaws.com
+    kind: IngressClassParams
+    name: alb
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cookbook-pipeline-ingressclass-reader
+rules:
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingressclasses"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cookbook-pipeline-ingressclass-reader
+subjects:
+  - kind: Group
+    name: cookbook-pipeline-ingressclass-reader
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cookbook-pipeline-ingressclass-reader
+  apiGroup: rbac.authorization.k8s.io
