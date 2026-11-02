@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookbook RAG System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .results-section h3 {
+            margin-bottom: 15px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-section h3 i {
+            color: #6a11cb;
+        }
+
+        .result-item {
+            background: #f8f9ff;
+            border-left: 4px solid #6a11cb;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .result-item h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-item p {
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .status-message {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn.loading .loading {
+            display: inline-block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 15px;
+        }
+
+        /* Recipe card styles */
+        .recipe-card {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .recipe-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .recipe-header h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .recipe-meta {
+            background: #e3f2fd;
+            border-radius: 24px;
+            padding: 12px 20px;
+            display: inline-flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            color: #6a11cb;
+            font-size: 0.9rem;
+        }
+
+        .recipe-meta span {
+            background: rgba(106,17,205,0.1);
+            border-radius: 16px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recipe-section {
+            margin-bottom: 24px;
+        }
+
+        .recipe-section h4 {
+            margin-bottom: 12px;
+            color: #34495e;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ingredients-list,
+        .instructions-list {
+            margin: 0;
+            padding-left: 24px;
+        }
+
+        .ingredients-list li,
+        .instructions-list li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .ingredients-list li::before {
+            content: "•";
+            color: #6a11cb;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+            counter-reset: item;
+        }
+
+        .instructions-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 12px;
+        }
+
+        .instructions-list li::before {
+            content: counter(item);
+            counter-increment: item;
+            background: #6a11cb;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            position: absolute;
+            left: 0;
+            top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 0;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Cookbook RAG System</h1>
+            <p>Search for recipes using AI-powered retrieval</p>
+        </header>
+
+        <section id="search-section">
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="searchQuery">Search for Recipes</label>
+                    <textarea id="searchQuery" name="query" rows="4" placeholder="Enter your recipe query (e.g., 'How to make chocolate cake?', 'Vegetarian pasta recipes', etc.)"></textarea>
+                    <small>Ask specific questions about recipes in your uploaded cookbooks</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="topK">Number of Results</label>
+                    <select id="topK" name="topK">
+                        <option value="1">1 Result</option>
+                        <option value="2" selected>2 Results</option>
+                        <option value="3" selected>3 Results</option>
+                        <option value="5">5 Results</option>
+                        <option value="10">10 Results</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn" id="searchBtn">Search Recipes</button>
+                <button type="button" class="btn secondary" id="clearSearchBtn">Clear Search</button>
+
+                <div class="status-message" id="searchStatus"></div>
+            </form>
+
+            <div class="results-section" id="searchResults">
+                <h3><i class="fas fa-search"></i> Search Results</h3>
+                <div id="searchResultContent">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No searches performed yet</h3>
+                        <p>Enter a query above to search for recipes</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Font Awesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            const searchForm = document.getElementById('searchForm');
+            const searchStatus = document.getElementById('searchStatus');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            const searchResults = document.getElementById('searchResults');
+            const searchResultContent = document.getElementById('searchResultContent');
+            const searchQuery = document.getElementById('searchQuery');
+            const topKSelect = document.getElementById('topK');
+
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const query = searchQuery.value.trim();
+                if (!query) {
+                    showStatus(searchStatus, 'error', 'Please enter a search query');
+                    return;
+                }
+
+                const topK = parseInt(topKSelect.value);
+
+                // Show loading state
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<span class="loading"></span> Searching...';
+                showStatus(searchStatus, 'info', 'Searching for recipes...');
+
+                // Hide previous results
+                searchResults.style.display = 'none';
+
+                const requestData = {
+                    query: query,
+                    top_k: topK
+                };
+
+                fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Handle the response - assuming it's the LLM response text
+                    showStatus(searchStatus, 'success', 'Search completed!');
+
+                    searchResults.style.display = 'block';
+                    // Try to parse as JSON for nice formatting
+                    let formattedContent;
+                    try {
+                        let parsed;
+                        if (typeof data === 'string') {
+                            // Try to extract JSON from the response (handle cases where LLM adds prefix text)
+                            const jsonMatch = data.match(/\{[\s\S]*\}/);
+                            if (jsonMatch) {
+                                parsed = JSON.parse(jsonMatch[0]);
+                            } else {
+                                parsed = data; // Not JSON, keep as string
+                            }
+                        } else {
+                            parsed = data;
+                        }
+
+                        // Check if it's our expected recipe format
+                        if (parsed && typeof parsed === 'object' && parsed.found !== undefined && parsed.recipe_name !== undefined) {
+                            // Format as a nice recipe card
+                            formattedContent = `
+                                <div class="recipe-card">
+                                    <div class="recipe-header">
+                                        <h3>${parsed.recipe_name}</h3>
+                                        <div class="recipe-meta">
+                                            <span>${parsed.cuisine || 'Unknown cuisine'}</span>
+                                            <span>${parsed.preparation_time || 'N/A'} prep</span>
+                                            <span>${parsed.refrigeration_time || 'N/A'} chill</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="recipe-section">
+                                        <h4>Ingredients</h4>
+                                        <ul class="ingredients-list">
+                                            ${parsed.ingredients && Array.isArray(parsed.ingredients) ?
+                                                parsed.ingredients.map(ing => `<li>${ing}</li>`).join('') :
+                                                '<li>No ingredients listed</li>'
+                                            }
+                                        </ul>
+                                    </div>
+
+                                    <div class="recipe-section">
+                                        <h4>Instructions</h4>
+                                        <ol class="instructions-list">
+                                            ${parsed.instructions && Array.isArray(parsed.instructions) ?
+                                                parsed.instructions.map((step, index) => `<li>${step}</li>`).join('') :
+                                                '<li>No instructions listed</li>'
+                                            }
+                                        </ol>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Fallback to JSON display for unexpected format
+                            formattedContent = `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+                        }
+                    } catch (e) {
+                        // If not JSON, just display as text
+                        formattedContent = `<p>${typeof data === 'string' ? data : JSON.stringify(data)}</p>`;
+                    }
+                    searchResultContent.innerHTML = `
+                        <div class="result-item">
+                            <h4>🔍 Search Results for: "${query}"</h4>
+                            ${formattedContent}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    showStatus(searchStatus, 'error', 'Search failed. Please make sure the backend is running.');
+                    console.error('Search error:', error);
+
+                    searchResultContent.innerHTML = `
+                        <div class="result-item">
+                            <h4>❌ Search Error</h4>
+                            <p>Failed to search for recipes. Please check if the backend is running and try again.</p>
+                        </div>
+                    `;
+                    searchResults.style.display = 'block';
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        searchBtn.disabled = false;
+                        searchBtn.innerHTML = 'Search Recipes';
+                    }, 1000);
+                });
+            });
+
+            // Clear search
+            clearSearchBtn.addEventListener('click', function() {
+                searchQuery.value = '';
+                searchStatus.style.display = 'none';
+                searchResults.style.display = 'none';
+                searchResultContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No searches performed yet</h3>
+                        <p>Enter a query above to search for recipes</p>
+                    </div>
+                `;
+            });
+
+            // Helper function to show status messages
+            function showStatus(element, type, message) {
+                if (!message) {
+                    element.style.display = 'none';
+                    element.className = 'status-message';
+                    return;
+                }
+
+                element.textContent = message;
+                element.className = `status-message status-${type}`;
+                element.style.display = 'block';
+
+                // Auto-hide after 5 seconds for non-error messages
+                if (type !== 'error') {
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            // Initialize
+            searchResults.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
