@@ -140,26 +140,26 @@
   <main class="shell">
     <div class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> The recipe shelf</div>
-      <div class="top-note">Your cookbooks, ready to explore</div>
+      <div class="top-note">Explore recipes and cooking ideas</div>
     </div>
 
     <header class="hero">
-      <p class="eyebrow">A little inspiration for your table</p>
-      <h1>Find something<br>good to cook.</h1>
-      <p class="hero-copy">Ask a question about your uploaded cookbooks and find recipes worth making.</p>
-      <div class="hero-accent"><span></span> Search your personal cookbook collection</div>
+      <p class="eyebrow">Recipes for every craving</p>
+      <h1>What sounds good<br>to cook today?</h1>
+      <p class="hero-copy">Explore recipe ideas and clear, step-by-step guidance for your next meal.</p>
+      <div class="hero-accent"><span></span> Discover something delicious in the recipe library</div>
     </header>
 
     <section class="content" aria-labelledby="searchHeading">
       <h2 class="section-heading" id="searchHeading">What are you craving?</h2>
-      <p class="section-subtitle">Describe a dish, ingredient, or occasion. The more specific, the better.</p>
+      <p class="section-subtitle">Describe a dish, ingredient, or occasion and explore recipes from our collection.</p>
 
       <form id="searchForm">
         <label class="field-label" for="searchQuery">Your recipe question</label>
         <textarea id="searchQuery" name="query" rows="4" aria-describedby="queryHelp" placeholder="For example: a quick vegetarian dinner with mushrooms…" required></textarea>
         <p class="helper" id="queryHelp">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5m0-8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          Search answers come from the recipes in your uploaded cookbooks.
+          Ask about a dish, ingredient, or cooking method.
         </p>
 
         <div class="examples" aria-label="Example searches">
@@ -184,13 +184,13 @@
       <section class="results-section" id="searchResults" aria-labelledby="resultsHeading" aria-live="polite">
         <div class="results-title-row">
           <h2 class="results-title" id="resultsHeading">Your recipe ideas</h2>
-          <span class="results-kicker">From your cookbook collection</span>
+          <span class="results-kicker">From the recipe library</span>
         </div>
         <div id="searchResultContent">
           <div class="empty-state">
             <span class="empty-icon" aria-hidden="true">✳</span>
             <h3>Your next favorite might be here</h3>
-            <p>Enter a question above to find a recipe.</p>
+            <p>Enter a question above to explore recipe ideas.</p>
           </div>
         </div>
       </section>
@@ -228,7 +228,7 @@
         searchBtn.disabled = true;
         searchBtnText.textContent = 'Searching…';
         searchBtn.querySelector('svg').outerHTML = '<span class="spinner" aria-hidden="true"></span>';
-        showStatus('info', 'Looking through your cookbooks…');
+        showStatus('info', 'Finding recipes for you…');
         searchResults.style.display = 'none';
 
         try {
@@ -240,7 +240,7 @@
           if (!response.ok) throw new Error('Search request failed with status ' + response.status);
           const data = await response.json();
           renderResults(query, data);
-          showStatus('success', 'Here are the results from your cookbooks.');
+          showStatus('success', 'Here are some recipe ideas for you.');
           searchResults.style.display = 'block';
         } catch (error) {
           console.error('Search error:', error);
@@ -259,7 +259,7 @@
         searchStatus.style.display = 'none';
         searchStatus.className = 'status-message';
         searchResults.style.display = 'none';
-        searchResultContent.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">✳</span><h3>Your next favorite might be here</h3><p>Enter a question above to find a recipe.</p></div>';
+        searchResultContent.innerHTML = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">✳</span><h3>Your next favorite might be here</h3><p>Enter a question above to explore recipe ideas.</p></div>';
         searchQuery.focus();
       });
 
